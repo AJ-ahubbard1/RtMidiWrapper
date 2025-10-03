@@ -2,7 +2,7 @@
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 #include "../RtMidiWrapper.h"
-
+#include "../MidiDevice/MidiInCallback.h"
 using namespace MidiInterface;
 
 // Function Prototypes
@@ -80,21 +80,11 @@ static void case1()
 		}
 	}
 }
+
 static void case2()
 {
-	MidiIn keyboard(true);
-	auto& portNames = keyboard.getPortNames();
-	printPorts(portNames);
-	std::cout << "Reading Midi input ... press <enter> to quit.\n";
-	char input;
-	std::cin.get(input);
-
-}
-
-static void case3()
-{
 	MidiOut player;
-	MidiIn keyboard(false);
+	MidiIn keyboard;
 
 	auto& portNames = keyboard.getPortNames();
 	printPorts(portNames);
@@ -108,4 +98,41 @@ static void case3()
 			player.sendMessage(keyboard.getMessage());
 		}
 	}
+}
+
+static void case3()
+{
+	using namespace std::chrono;
+
+	MidiIn keyboard;
+	keyboard.setMidiInCallback(midiInCallback);
+	auto& portNames = keyboard.getPortNames();
+	printPorts(portNames);
+	
+	auto start = steady_clock::now();
+	auto endtime = start + seconds(5);
+
+	std::cout << "Using callback function\n";
+	while (endtime > steady_clock::now()); 
+
+	keyboard.cancelCallback();
+	start = steady_clock::now();
+	endtime = start + seconds(5);
+	std::cout << "Callback function cancelled\n";
+	MidiOut player;
+	while (endtime > steady_clock::now())
+	{
+		if (keyboard.checkForMessage())
+		{
+			MidiMessage mm = keyboard.getMessage();
+			std::cout << "Message Received: " << mm.getString() << std::endl;
+			player.sendMessage(keyboard.getMessage());
+		}
+	}
+			
+	
+	std::cout << "Press <enter> to quit.\n";
+	char input;
+	std::cin.get(input);
+
 }

@@ -2,7 +2,6 @@
 #include "../RtMidi/RtMidi.h"
 #include "../MidiMessage/MidiMessage.h"
 #include "MidiError.h"
-#include "MidiInCallback.h"
 
 namespace MidiInterface
 {
@@ -13,7 +12,7 @@ namespace MidiInterface
 	class MidiIn
 	{
 	public:
-		MidiIn(bool useCallback = true)
+		MidiIn()
 		{
 			mInstrument = new RtMidiIn();
 			mInstrument->setErrorCallback(*midiErrorCallback, nullptr);
@@ -26,10 +25,6 @@ namespace MidiInterface
 			{
 				fillPortNames();
 				mInstrument->openPort(mPortNum);
-				if (useCallback)
-				{
-					mInstrument->setCallback(&midiInCallback);
-				}
 			}
 		}
 		~MidiIn()
@@ -44,7 +39,6 @@ namespace MidiInterface
 			mInstrument->closePort();
 			mPortNum = p;
 			mInstrument->openPort(mPortNum);
-			mInstrument->setCallback(&midiInCallback);
 		}
 
 		unsigned int getNumPorts() const
@@ -74,7 +68,16 @@ namespace MidiInterface
 		{
 			return mMessage;
 		}
-	
+		
+		void setMidiInCallback(void (*callback)(double, std::vector<unsigned char>*, void*))
+		{
+			mInstrument->setCallback(callback);
+		}
+
+		void cancelCallback()
+		{
+			mInstrument->cancelCallback();
+		}
 	private:
 		ubyte mPortNum{0};
 		RtMidiIn* mInstrument;
@@ -90,6 +93,5 @@ namespace MidiInterface
 				mPortNames.push_back(mInstrument->getPortName(i));
 			}
 		}
-
 	};
 }
