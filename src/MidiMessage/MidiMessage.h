@@ -20,6 +20,7 @@ namespace MidiInterface
 
 	enum ChannelMessage
 	{
+		VOLUME = 0x07,
 		ALL_SOUND_OFF = 0x78,
 		RESET_CONTROLLERS = 0X79,
 		ALL_NOTES_OFF = 0x7B,
